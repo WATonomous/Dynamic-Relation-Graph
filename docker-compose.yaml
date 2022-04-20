@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  site-dev:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.docs
+    tty: true
+    working_dir: /docs
+    volumes:
+      - ./docs:/docs
