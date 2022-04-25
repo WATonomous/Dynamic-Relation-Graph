@@ -9,3 +9,22 @@ services:
     working_dir: /docs
     volumes:
       - ./docs:/docs
+
+  drg:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.drg
+    volumes:
+      - ./src/ros_msgs:/home/docker/catkin_ws/src/ros_msgs
+      - ./src/pp_env_model:/home/docker/catkin_ws/src/pp_env_model
+    depends_on:
+      - rosmaster
+
+  rosmaster:
+     image: ros:noetic
+     command: "roscore"
+     environment:
+       - ROS_HOSTNAME=rosmaster
+
+
+  
