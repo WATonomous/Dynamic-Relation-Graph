@@ -1,0 +1,8 @@
+---
+layout: post
+title:  "See you at ICRA 2022!"
+date:   2022-04-18 23:03:11 -0500
+categories: jekyll update
+permalink: /posts/icra2022
+---
+Rowan will be heading to ICRA 2022 on Sunday May 22nd and presenting our work during the Mapping session from 10:00 - 11:20 on Thu 26 May in Room 113B. We hope to see you there!
