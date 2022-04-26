@@ -14,11 +14,15 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.drg
+    image: ghcr.io/watonomous/dynamic-relation-graph:latest
     volumes:
       - ./src/ros_msgs:/home/docker/catkin_ws/src/ros_msgs
       - ./src/pp_env_model:/home/docker/catkin_ws/src/pp_env_model
     depends_on:
       - rosmaster
+    environment: 
+      - ROS_MASTER_URI=http://rosmaster:11311/
+
 
   rosmaster:
      image: ros:noetic

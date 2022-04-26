@@ -66,7 +66,7 @@ RUN git clone https://docker-image:wnYipLhHecUSW5NEKb2V@git.uwaterloo.ca/WATonom
 
 # Second stage copies all the WATO sources we need
 COPY src/ros_msgs ros_msgs
-COPY src/drg/env_model drg
+COPY src/pp_env_model pp_env_model
 
 RUN sudo rm /etc/ros/rosdep/sources.list.d/20-default.list || true && \
     sudo rosdep init && \

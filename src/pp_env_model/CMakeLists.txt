@@ -9,7 +9,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -Wall -g -Wno-sign-compare -Wno-unknown-pragmas
 add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
-  pp_common
   derived_object_msgs
   lanelet2_core
   lanelet2_io
@@ -37,7 +36,6 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ENV_MODEL_LIB
   CATKIN_DEPENDS   
-    pp_common
     derived_object_msgs
     lanelet2_core
     lanelet2_io
