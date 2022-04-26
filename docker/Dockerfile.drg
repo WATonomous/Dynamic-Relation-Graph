@@ -1,0 +1,87 @@
+# First stage sets up the base, ie everything except the active dev repo
+FROM ros:melodic-ros-core
+
+# ================= Dependencies ===================
+
+# Set up apt repo
+RUN apt-get update && apt-get install -y lsb-release software-properties-common apt-transport-https && \
+    apt-add-repository universe
+
+RUN apt-get update && \
+    apt-get install -y \ 
+    # Install catkin build system
+    build-essential \
+    python-osrf-pycommon \
+    python-catkin-tools \
+    python-rosdep \
+    python-rospkg \
+    # Install apt dev dependencies
+    ros-melodic-lanelet2 \
+    ros-melodic-astuff-sensor-msgs \
+    ros-melodic-tf2-geometry-msgs \
+    # Misc
+    git \
+    python-pip \
+    wget curl
+
+
+# Add a docker user so we that created files in the docker container are owned by a non-root user
+RUN addgroup --gid 1000 docker && \
+    adduser --uid 1000 --ingroup docker --home /home/docker --shell /bin/bash --disabled-password --gecos "" docker && \
+    echo "docker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+
+# Remap the docker user and group to be the same uid and group as the host user.
+# Any created files by the docker container will be owned by the host user.
+RUN USER=docker && \
+    GROUP=docker && \
+    curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.4-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
+    chown root:root /usr/local/bin/fixuid && \
+    chmod 4755 /usr/local/bin/fixuid && \
+    mkdir -p /etc/fixuid && \
+    printf "user: $USER\ngroup: $GROUP\npaths:\n  - /home/docker/" > /etc/fixuid/config.yml
+
+USER docker:docker
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN sudo chsh -s /bin/bash
+ENV SHELL=/bin/bash
+
+# Set up workspace
+RUN mkdir -p ~/catkin_ws/src
+WORKDIR /home/docker/catkin_ws/src
+
+# Download source dependencies
+# We depend on Autoware's lanelet2_extension for viz and sending lanelet2 map over ROS
+RUN git clone https://github.com/Autoware-AI/common.git
+RUN mv common/lanelet2_extension common/autoware_build_flags common/amathutils_lib ./
+RUN rm -rf common
+RUN git clone https://github.com/fzi-forschungszentrum-informatik/icmaker.git
+RUN git clone https://github.com/rowandempster/liblanelet.git
+
+# Download maps
+ENV MAPS_DIR="/home/docker/catkin_ws/src/maps"
+RUN git clone https://docker-image:wnYipLhHecUSW5NEKb2V@git.uwaterloo.ca/WATonomous/map_data.git $MAPS_DIR
+
+# ================= Repositories ===================
+
+# Second stage copies all the WATO sources we need
+COPY src/ros_msgs ros_msgs
+COPY src/pp_env_model pp_env_model
+
+RUN sudo rm /etc/ros/rosdep/sources.list.d/20-default.list || true && \
+    sudo rosdep init && \
+    sudo apt-get update && \
+    #sudo python -m pip install pip --upgrade && \
+    rosdep update && \
+    rosdep install --from-paths . --ignore-src -r -y
+
+WORKDIR /home/docker/catkin_ws
+RUN catkin config --extend /opt/ros/melodic && \
+    catkin build && \
+    rm -rf .catkin_tools build
+
+# Entrypoint will run before any CMD on launch. Sources ~/opt/<ROS_DISTRO>/setup.bash and ~/catkin_ws/devel/setup.bash
+COPY docker/wato_ros_entrypoint.sh /home/docker/wato_ros_entrypoint.sh
+RUN sudo chmod +x ~/wato_ros_entrypoint.sh
+ENTRYPOINT ["/home/docker/wato_ros_entrypoint.sh"]
+CMD ["roslaunch", "--wait", "pp_env_model", "lanelet_and_model.launch"]

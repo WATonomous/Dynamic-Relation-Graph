@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find pp_env_model)/launch/lanelet2_map_server.launch" />
+    <include file="$(find pp_env_model)/launch/env_model.launch" />
+    <node pkg="pp_env_model" name="rviz_lanelet_destination_bridge" type="rviz_lanelet_destination_bridge" output="screen"/>
+</launch>

@@ -1,0 +1,5 @@
+<launch>
+	<arg name='MAPS_DIR' default='$(env MAPS_DIR)'/>
+	<param name="MAPS_DIR" type="str" value="$(arg MAPS_DIR)"/>
+	<node pkg="pp_env_model" name="lanelet_service" type="lanelet_service" output="screen"/>
+</launch>
